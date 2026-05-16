@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS energy_documents_title_idx ON energy_document USING GIN (to_tsvector('simple',title));
+-- CREATE INDEX IF NOT EXISTS energy_documents_genres_idx ON energy_document USING GIN (genres);
