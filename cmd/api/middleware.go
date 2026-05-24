@@ -5,7 +5,6 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +14,8 @@ import (
 	"github.com/TarekDTM/EnergyOptimizer/internal/data"
 	"github.com/TarekDTM/EnergyOptimizer/internal/validator"
 	"github.com/felixge/httpsnoop"
+	"github.com/tomasen/realip"
+
 	"golang.org/x/time/rate"
 )
 
@@ -52,6 +53,7 @@ func (app *application) cancelRequest(next http.Handler) http.Handler {
 }
 
 func (app *application) rateLimit(next http.Handler) http.Handler {
+
 	type client struct {
 		limiter  *rate.Limiter
 		lastSeen time.Time
@@ -76,12 +78,8 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if app.config.limiter.enabled {
 
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
+			ip := realip.FromRequest(r)
 
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
 			mu.Lock()
 			if _, found := clients[ip]; !found {
 				clients[ip] = &client{limiter: rate.NewLimiter(rate.Limit(app.config.limiter.burst), app.config.limiter.burst)}
