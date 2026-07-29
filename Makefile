@@ -23,7 +23,7 @@ confirm:
 ## run/api: run the cmd/api application
 .PHONY: run/api
 run/api:
-	@go run ./cmd/api -db-dsn=${RENEWABLE_BUDDY_DB_DSN} -smtp-username=${SMTP_USER_NAME} -smtp-password=${SMTP_PASSWORD}
+	@go run ./cmd/api -db-dsn=${RENEWABLE_BUDDY_DB_DSN} -smtp-username=${SMTP_USER_NAME} -smtp-password=${SMTP_PASSWORD}  -cors-trusted-origins=${TRUSTED_CORS_ORIGINS}
 
 ## db/psql: connect to the database using psql
 .PHONY: db/psql

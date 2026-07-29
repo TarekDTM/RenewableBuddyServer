@@ -44,7 +44,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 			return fmt.Errorf("body contains badly-formed JSON (at character %d)", unmarshalTypeError.Offset)
 
 		case errors.Is(err, io.EOF):
-			return errors.New("body mus not be empty")
+			return errors.New("body must not be empty")
 		case strings.HasPrefix(err.Error(), "json: unknown field "):
 			fieldName := strings.TrimPrefix(err.Error(), "json:unknown field")
 			return fmt.Errorf("body contains unknown key %s", fieldName)
