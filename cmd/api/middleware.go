@@ -196,8 +196,8 @@ func (app *application) enableCORS(next http.Handler) http.Handler {
 		if origin != "" && len(app.config.cors.trustedOrigins) != 0 {
 			for i := range app.config.cors.trustedOrigins {
 				if origin == app.config.cors.trustedOrigins[i] {
-
 					w.Header().Set("Access-Control-Allow-Origin", origin)
+					w.Header().Set("Access-Control-Allow-Credentials", "true")
 					if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
 						w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, PUT, PATCH, DELETE, POST, GET")
 						w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
@@ -206,6 +206,7 @@ func (app *application) enableCORS(next http.Handler) http.Handler {
 						return
 
 					}
+					break
 				}
 			}
 		}
@@ -224,7 +225,6 @@ func (app *application) metrics(next http.Handler) http.Handler {
 
 		metrics := httpsnoop.CaptureMetrics(next, w, r)
 
-		next.ServeHTTP(w, r)
 		totalResponsesSent.Add(1)
 
 		totalProcessingTimeMicroseconds.Add(metrics.Duration.Microseconds())
