@@ -20,10 +20,17 @@ func (app *application) routes() http.Handler {
 
 	//Energy document Routes
 	router.HandlerFunc(http.MethodGet, "/v1/EnergyDocuments", app.requireActivatedUser(app.listEnergyDocuments))
-	router.HandlerFunc(http.MethodPost, "/v1/EnergyDocument", app.requireActivatedUser(app.createEnergyDocumentHandler))
-	router.HandlerFunc(http.MethodGet, "/v1/EnergyDocument/:id", app.requireActivatedUser(app.showEnergyDocumentHandler))
-	router.HandlerFunc(http.MethodPatch, "/v1/EnergyDocument/:id", app.requireActivatedUser(app.updateEnergyDocument))
-	router.HandlerFunc(http.MethodDelete, "/v1/EnergyDocument/:id", app.requireActivatedUser(app.deleteEnergyDocument))
+	router.HandlerFunc(http.MethodPost, "/v1/EnergyDocuments", app.requireActivatedUser(app.createEnergyDocumentHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/EnergyDocuments/:id", app.requireActivatedUser(app.showEnergyDocumentHandler))
+	router.HandlerFunc(http.MethodPatch, "/v1/EnergyDocuments/:id", app.requireActivatedUser(app.updateEnergyDocument))
+	router.HandlerFunc(http.MethodDelete, "/v1/EnergyDocuments/:id", app.requireActivatedUser(app.deleteEnergyDocument))
+
+	//Projects Routes
+	router.HandlerFunc(http.MethodGet, "/v1/Projects", app.requireActivatedUser(app.listProjects))
+	router.HandlerFunc(http.MethodPost, "/v1/Projects", app.createProjectsHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/Projects/:id", app.requireActivatedUser(app.showProjectsHandler))
+	router.HandlerFunc(http.MethodPatch, "/v1/Projects/:id", app.requireActivatedUser(app.updateProjects))
+	router.HandlerFunc(http.MethodDelete, "/v1/Projects/:id", app.requireActivatedUser(app.deleteProjects))
 
 	//user routes
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)

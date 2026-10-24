@@ -40,7 +40,18 @@ db/migrations/new:
 .PHONY: db/migrations/up
 db/migrations/up: confirm
 	@echo 'Running up migrations...'
-	migrate -path ./migrations -database ${ENERGY_BUDDY_DB_DSN} up
+	migrate -path ./migrations -database ${RENEWABLE_BUDDY_DB_DSN} up
+
+## db/migrations/down: revert the last database migration
+.PHONY: db/migrations/down
+db/migrations/down: confirm
+	@echo 'Running down migrations...'
+	migrate -path ./migrations -database ${RENEWABLE_BUDDY_DB_DSN} down	
+## db/migrations/cleanDirty: clean dirty database state
+.PHONY: db/migrations/cleanDirty
+db/migrations/cleanDirty:
+	@echo 'Cleaning dirty database state...'
+	migrate -path ./migrations -database ${RENEWABLE_BUDDY_DB_DSN} force 1
 
 # ==================================================================================== #
 # QUALITY CONTROL

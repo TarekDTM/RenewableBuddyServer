@@ -7,47 +7,55 @@ import (
 
 	"github.com/TarekDTM/EnergyOptimizer/internal/data"
 	"github.com/TarekDTM/EnergyOptimizer/internal/validator"
+	"github.com/shopspring/decimal"
 )
 
-func (app *application) createEnergyDocumentHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) createProjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var input struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		StorageURL  string `json:"storage_url"`
+		UserID              int64           `json:"user_id"`
+		Title               string          `json:"title"`
+		MonthlyBill         decimal.Decimal `json:"monthly_bill"`
+		TariffSchemeId      *int64          `json:"tariff_scheme_id,omitempty"`
+		FlatElectricityRate *int64          `json:"flat_electricity_rate,omitempty"`
 	}
 	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
-
-	eDoc := &data.EnergyDocuments{
-		Title:       input.Name,
-		Description: input.Description,
-		StorageURL:  input.StorageURL,
+	project := &data.Projects{
+		Title:       input.Title,
+		MonthlyBill: input.MonthlyBill,
+		UserId:      input.UserID,
+	}
+	if input.TariffSchemeId != nil {
+		project.TariffSchemeId = *input.TariffSchemeId
+	}
+	if input.FlatElectricityRate != nil {
+		project.FlatElectricityRate = *input.FlatElectricityRate
 	}
 
 	v := validator.New()
 
-	if data.ValidateEDoc(v, eDoc); !v.Valid() {
+	if data.ValidateProject(v, project); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	err = app.models.Edocs.Insert(eDoc)
+	err = app.models.Projects.Insert(project)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", eDoc.ID))
-	err = app.writeJSON(w, http.StatusCreated, envelope{"edoc": eDoc}, headers)
+	headers.Set("Location", fmt.Sprintf("/v1/projects/%d", project.ID))
+	err = app.writeJSON(w, http.StatusCreated, envelope{"data": project}, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
-func (app *application) showEnergyDocumentHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) showProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
@@ -65,14 +73,14 @@ func (app *application) showEnergyDocumentHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"doc": edoc}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"data": edoc}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
 
-func (app *application) listEnergyDocuments(w http.ResponseWriter, r *http.Request) {
+func (app *application) listProjects(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Title  string
 		Genres []string
@@ -98,19 +106,19 @@ func (app *application) listEnergyDocuments(w http.ResponseWriter, r *http.Reque
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	err = app.writeJSON(w, http.StatusOK, envelope{"edocs": edocs, "metadata": metaData}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"data": edocs, "metadata": metaData}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
 
-func (app *application) updateEnergyDocument(w http.ResponseWriter, r *http.Request) {
+func (app *application) updateProjects(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
-	edoc, err := app.models.Edocs.Get(id)
+	project, err := app.models.Projects.Get(id)
 
 	if err != nil {
 		switch {
@@ -123,35 +131,40 @@ func (app *application) updateEnergyDocument(w http.ResponseWriter, r *http.Requ
 	}
 
 	var input struct {
-		Name        *string `json:"name"`
-		Description *string `json:"description"`
-		StorageURL  *string `json:"storage_url"`
+		Title               *string          `json:"title"`
+		MonthlyBill         *decimal.Decimal `json:"monthly_bill"`
+		TariffSchemeId      *int64           `json:"tariff_scheme_id,omitempty"`
+		FlatElectricityRate *int64           `json:"flat_electricity_rate,omitempty"`
 	}
 	err = app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
-	if input.Name != nil {
+	if input.Title != nil {
 
-		edoc.Title = *input.Name
+		project.Title = *input.Title
 	}
-	if input.Description != nil {
+	if input.MonthlyBill != nil {
 
-		edoc.Description = *input.Description
+		project.MonthlyBill = *input.MonthlyBill
 	}
-	if input.StorageURL != nil {
+	if input.TariffSchemeId != nil {
 
-		edoc.StorageURL = *input.StorageURL
+		project.TariffSchemeId = *input.TariffSchemeId
+	}
+	if input.FlatElectricityRate != nil {
+
+		project.FlatElectricityRate = *input.FlatElectricityRate
 	}
 
 	v := validator.New()
 
-	if data.ValidateEDoc(v, edoc); !v.Valid() {
+	if data.ValidateProject(v, project); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	err = app.models.Edocs.Update(edoc)
+	err = app.models.Projects.Update(project)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrEditConflict):
@@ -162,13 +175,13 @@ func (app *application) updateEnergyDocument(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"edoc": edoc}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"data": project}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
 
-func (app *application) deleteEnergyDocument(w http.ResponseWriter, r *http.Request) {
+func (app *application) deleteProjects(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 
 	if err != nil {
